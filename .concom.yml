@@ -7,6 +7,8 @@ scopes:
       description: All changes related to the concom configuration
     - name: bot
       description: All changes related to the bot
+    - name: gitignore
+      description: All changes related to the .gitignore configuration
 conventions:
     - name: build
       description: Changes that affect the build system or external dependencies
