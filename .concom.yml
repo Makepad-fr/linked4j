@@ -9,6 +9,8 @@ scopes:
       description: All changes related to the bot
     - name: gitignore
       description: All changes related to the .gitignore configuration
+    - name: funding
+      description: All changes related to the funding
 conventions:
     - name: build
       description: Changes that affect the build system or external dependencies
