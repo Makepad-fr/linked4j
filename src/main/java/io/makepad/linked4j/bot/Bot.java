@@ -102,8 +102,8 @@ public class Bot extends AbstractBot implements IBot {
         }
     }
 
-    public void getUserDetails(){
-        super.driver.get("https://www.linkedin.com/in/idil-sa%C4%9Flam-a83b05148/");
+    public void getUserDetails(String username){
+        super.driver.get(String.format("https://www.linkedin.com/in/%s/", username));
         final By fullNamePath = By.xpath("/html/body/div[7]/div[3]/div/div/div/div/div[3]/div/div/main/div/section/div[2]/div[2]/div/div[1]/h1");
         String fullName = super.driver.findElement(fullNamePath).getText();
         System.out.println("Full name :"+ fullName);
