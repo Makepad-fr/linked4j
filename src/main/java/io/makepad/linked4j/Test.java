@@ -7,7 +7,7 @@ import java.io.File;
 
 public class Test {
     public static void main(String[] args) throws Exception {
-    final String COOKIE_FILE_PATH ="cookie.data";
+    final String COOKIE_FILE_PATH = "cookie.data";
     File f = new File(COOKIE_FILE_PATH);
         LinkedIn l;
         if(f.exists() && !f.isDirectory()){
