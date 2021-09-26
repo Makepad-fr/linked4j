@@ -11,6 +11,5 @@ public class LinkedIn {
     public LinkedIn(String filePath) {
         this.bot = new Bot();
         this.bot.loadCookies(filePath);
-        this.bot.getUserDetails();
     }
 }
