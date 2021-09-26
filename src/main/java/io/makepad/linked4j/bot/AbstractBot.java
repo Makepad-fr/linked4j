@@ -31,5 +31,4 @@ abstract class AbstractBot {
         this.driver.get("https://www.linkedin.com/");
 
     }
-
 }
