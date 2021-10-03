@@ -1,16 +1,21 @@
-path: /Users/kaanyagci/Documents/makepad/linked4j
+configfilepath: /Users/kaanyagci/Documents/makepad/linked4j/.concom.yml
+path: ""
 version: 0.0.1
 scopes:
     - name: config
-      description: All changes related to the configuration
-    - name: concom
-      description: All changes related to the concom configuration
-    - name: bot
-      description: All changes related to the bot
-    - name: gitignore
-      description: All changes related to the .gitignore configuration
-    - name: funding
-      description: All changes related to the funding
+      description: All changes related to configuration
+    - name: auth
+      description: All changes related authentication
+    - name: profile
+      description: All changes related profile
+    - name: posts
+      description: All changes related posts
+    - name: comments
+      description: All changes related comments
+    - name: relations
+      description: All changes related relations
+    - name: messages
+      description: All changes related messages
 conventions:
     - name: build
       description: Changes that affect the build system or external dependencies

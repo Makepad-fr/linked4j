@@ -6,11 +6,9 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
+        <module name="linkedInProfileDetails" />
         <module name="linked4j" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel>
-      <module name="linked4j" target="15" />
-    </bytecodeTargetLevel>
   </component>
 </project>

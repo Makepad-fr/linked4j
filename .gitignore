@@ -1,4 +1,6 @@
 # Logs
+cookie.data
+target/
 logs
 *.log
 npm-debug.log*
