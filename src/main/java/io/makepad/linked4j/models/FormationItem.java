@@ -1,4 +1,5 @@
-package io.makepad.linked4j.bot;
+/* (C)2021 */
+package io.makepad.linked4j.models;
 
 public class FormationItem {
     private String title;
@@ -6,11 +7,11 @@ public class FormationItem {
     private boolean graduated;
     private String description;
 
-    public FormationItem(String title, String role, String description, boolean graduated){
+    public FormationItem(String title, String role, String description, boolean graduated) {
         this.description = description;
         this.role = role;
         this.title = title;
-        this.graduated =graduated;
+        this.graduated = graduated;
     }
 
     public String getTitle() {
@@ -36,6 +37,7 @@ public class FormationItem {
     public void setDescription(String description) {
         this.description = description;
     }
+
     public boolean isGraduated() {
         return graduated;
     }
@@ -43,5 +45,4 @@ public class FormationItem {
     public void setGraduated(boolean graduated) {
         this.graduated = graduated;
     }
-
 }

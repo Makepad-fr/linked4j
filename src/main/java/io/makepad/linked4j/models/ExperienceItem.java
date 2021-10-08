@@ -1,4 +1,5 @@
-package io.makepad.linked4j.bot;
+/* (C)2021 */
+package io.makepad.linked4j.models;
 
 import java.util.Date;
 
@@ -11,9 +12,14 @@ public class ExperienceItem {
     private Date ends;
     private String companyPageURL;
 
-
-
-    public ExperienceItem(String companyName, String role, String description, int duration, Date starts, Date ends, String companyPageURL){
+    public ExperienceItem(
+            String companyName,
+            String role,
+            String description,
+            int duration,
+            Date starts,
+            Date ends,
+            String companyPageURL) {
         this.description = description;
         this.duration = duration;
         this.role = role;
@@ -54,6 +60,7 @@ public class ExperienceItem {
     public void setDescription(String description) {
         this.description = description;
     }
+
     public Date getStarts() {
         return starts;
     }
