@@ -1,0 +1,39 @@
+version: 2.1
+
+executors:
+  java-openjdk:
+    docker:
+       - image: cimg/openjdk:15.0
+
+commands:
+  configure-gpg-keys:
+    steps:
+      - run:
+          name: Get keys from keyserver
+          command: gpg -v --keyserver hkp://${KEYSERVER_NAME} --recv-keys ${GPG_KEY_LONG}
+jobs:
+  build:
+    executor: java-openjdk
+    steps:
+      - checkout
+      - configure-gpg-keys
+      - run:
+          name: Package
+          command: mvn -B -DskipTests clean package
+  spotless-check:
+    executor: java-openjdk
+    steps:
+      - checkout
+      - configure-gpg-keys
+      - run:
+          name: Check with spotless
+          command: mvn spotless:check
+
+workflows:
+  build-and-check:
+    jobs:
+      - build:
+          context: makepad-maven-ossrh
+      - spotless-check:
+          context: makepad-maven-ossrh
+
