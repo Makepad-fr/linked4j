@@ -1,2 +1,2 @@
 # linkedjs
-A LinkedIn automation to grow your professional 
+A LinkedIn automation to grow your professional

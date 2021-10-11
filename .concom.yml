@@ -1,21 +1,39 @@
-configfilepath: /Users/kaanyagci/Documents/makepad/linked4j/.concom.yml
-path: ""
+configfilepath: /Users/kaanyagci/Documents/makepad/jinsta/.concom.yml
+path: /Users/kaanyagci/Documents/makepad/jinsta
 version: 0.0.1
 scopes:
-    - name: config
-      description: All changes related to configuration
     - name: auth
-      description: All changes related authentication
-    - name: profile
-      description: All changes related profile
-    - name: posts
-      description: All changes related posts
-    - name: comments
-      description: All changes related comments
-    - name: relations
-      description: All changes related relations
-    - name: messages
-      description: All changes related messages
+      description: authentication module
+    - name: user-profile
+      description: user profile module
+    - name: user-posts
+      description: user posts module
+    - name: config
+      description: configuration related changes
+    - name: selectors
+      description: selectors related changes
+    - name: pom
+      description: pom file related changes
+    - name: spotless
+      description: changes related to splotless or done by spotless
+    - name: logging
+      description: All changes related logging
+    - name: circleci
+      description: All changes related to the CircleCI
+    - name: depdendencies
+      description: All changes related dependencies
+    - name: assets
+      description: all changes related assets
+    - name: example
+      description: All changes related example app
+    - name: readme
+      description: All changes related to README
+    - name: templates
+      description: All changes related to templates
+    - name: version
+      description: All changes related to version
+    - name: core
+      description: Changes related the core library
 conventions:
     - name: build
       description: Changes that affect the build system or external dependencies
