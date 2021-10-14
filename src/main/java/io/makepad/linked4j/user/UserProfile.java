@@ -56,12 +56,18 @@ public class UserProfile {
      */
     public String getInfo() {
         this.goProfilePage();
-        return this.driver
-                .findElement(UserProfileSelectors.info)
-                .getText()
-                .replaceAll(
-                        this.driver.findElement(UserProfileSelectors.infoTextToDelete).getText(),
-                        "");
+        try {
+            return this.driver
+                    .findElement(UserProfileSelectors.info)
+                    .getText()
+                    .replaceAll(
+                            this.driver
+                                    .findElement(UserProfileSelectors.infoTextToDelete)
+                                    .getText(),
+                            "");
+        } catch (NoSuchElementException e) {
+            return "";
+        }
     }
 
     /**
