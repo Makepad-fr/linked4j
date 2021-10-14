@@ -72,6 +72,6 @@ public class Linked4J extends AbstractBot {
      * @param username The username of the user
      */
     public void setUserProfile(String username) {
-        this.userProfile = new UserProfile(super.driver, username);
+        this.userProfile = new UserProfile(super.driver, username, super.wait);
     }
 }
