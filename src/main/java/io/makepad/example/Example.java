@@ -21,5 +21,6 @@ public class Example {
         System.out.printf("User info %s\n", l.userProfile.getInfo());
         System.out.printf("User current job %s\n", l.userProfile.getCurrentJob());
         System.out.printf("User current location %s\n", l.userProfile.getCurrentLocation());
+        l.userProfile.getUserExperiences();
     }
 }
