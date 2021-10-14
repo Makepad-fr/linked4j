@@ -28,7 +28,10 @@ public class UserProfile {
 
     /** Function navigates to the profile page of the user */
     private void goProfilePage() {
-        String url = String.format("https://www.linkedin.com/in/%s/", this.username);
+        String url =
+                String.format(
+                        "https://www.linkedin.com/in/%s/",
+                        URLEncoder.encode(this.username, StandardCharsets.UTF_8));
         logger.info(String.format("Current URL %s\n", this.driver.getCurrentUrl()));
         if (this.driver.getCurrentUrl().equals(url)) {
             return;
