@@ -2,10 +2,14 @@
 package io.makepad.linked4j.user;
 
 import io.makepad.linked4j.models.Company;
+import io.makepad.linked4j.models.Education;
 import io.makepad.linked4j.models.Role;
+import io.makepad.linked4j.models.School;
 import io.makepad.linked4j.models.WorkExperience;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.logging.log4j.LogManager;
@@ -93,8 +97,6 @@ public class UserProfile {
         this.goProfilePage();
         return this.driver.findElement(UserProfileSelectors.currentJob).getText();
     }
-
-
 
     /** Function expands all experiences on the user profile */
     private void expandAll(By selector) {
@@ -261,11 +263,8 @@ public class UserProfile {
                 durationElement = this.driver.findElement(By.xpath(durationPath));
         String roleDescription = this.getExperienceDescription(descriptionPath);
         String location = "";
-        try {
-            location = this.driver.findElement(By.xpath(locationPath)).getText();
-        } catch (NoSuchElementException ignore) {
+        location = getTextOfWebElementIfExists(locationPath);
 
-        }
         WorkExperience exp =
                 new WorkExperience(
                         new Company(companyNameElement.getText(), companyURL),
@@ -309,6 +308,110 @@ public class UserProfile {
         }
     }
 
+    /**
+     * Function returns the list of educations items on the user profile
+     *
+     * @return The list of education of the user.
+     */
+    public List<Education> getEducation() {
+        this.goProfilePage();
+        List<Education> educations = new ArrayList<>();
+        try {
+            this.wait.until(
+                    ExpectedConditions.presenceOfElementLocated(
+                            By.xpath(UserEducationSelectors.educationSectionPath)));
+            this.expandAll(By.xpath(UserEducationSelectors.seeMoreButtonPath));
+            List<WebElement> educationListItems =
+                    this.driver.findElements(
+                            By.xpath(UserEducationSelectors.educationListItemPath));
+            for (int i = 0; i < educationListItems.size(); i++) {
+                String
+                        educationListItemPath =
+                                String.format(
+                                        "(%s)[%d]",
+                                        UserEducationSelectors.educationListItemPath, i + 1),
+                        schoolURLPath = String.format("%s//a", educationListItemPath),
+                        schoolNamePath =
+                                String.format(
+                                        "%s%s",
+                                        educationListItemPath,
+                                        UserEducationSelectors.educationSchoolNamePath),
+                        degreeNamePath =
+                                String.format(
+                                        "%s%s",
+                                        educationListItemPath,
+                                        UserEducationSelectors.degreeNamePath),
+                        fieldNamePath =
+                                String.format(
+                                        "%s%s",
+                                        educationListItemPath,
+                                        UserEducationSelectors.educationFieldNamePath),
+                        datePath =
+                                String.format(
+                                        "%s%s",
+                                        educationListItemPath,
+                                        UserEducationSelectors.educationDatePath),
+                        descriptionPath =
+                                String.format(
+                                        "%s%s",
+                                        educationListItemPath,
+                                        UserEducationSelectors.educationDescriptionPath),
+                        activitiesAndSocietiesPath =
+                                String.format(
+                                        "%s%s",
+                                        educationListItemPath,
+                                        UserEducationSelectors.educationActivitiesAndSocieties);
+
+                WebElement schoolURLElement = this.driver.findElement(By.xpath(schoolURLPath)),
+                        schoolNameElement = this.driver.findElement(By.xpath(schoolNamePath)),
+                        dateElement = this.driver.findElement(By.xpath(datePath));
+                School school =
+                        new School(
+                                schoolNameElement.getText(), schoolURLElement.getAttribute("href"));
+                // logger.debug(String.format("Field name %s", fieldNameElement.getText()));
+                String degree = getTextOfWebElementIfExists(degreeNamePath),
+                        field = getTextOfWebElementIfExists(fieldNamePath),
+                        description = getTextOfWebElementIfExists(descriptionPath),
+                        activitiesAndSocieties =
+                                getTextOfWebElementIfExists(activitiesAndSocietiesPath);
+
+                try {
+                    String dateText = dateElement.getText();
+                    String[] parsedDate = dateText.split("[-–]");
+                    SimpleDateFormat df = new SimpleDateFormat("yyyy");
+                    educations.add(
+                            new Education(
+                                    school,
+                                    field,
+                                    degree,
+                                    description,
+                                    activitiesAndSocieties,
+                                    df.parse(parsedDate[0]),
+                                    df.parse(parsedDate[1])));
+                } catch (IndexOutOfBoundsException | ParseException e) {
+                    System.err.printf("Can not parse date %s", dateElement.getText());
+                    // TODO: Do something when we cannot parse the date element
+                }
+            }
+        } catch (TimeoutException | NoSuchElementException e) {
+            logger.warn("This user has no education on the profile");
+        }
+        return educations;
+    }
+
+    /**
+     * Function returns the text content of the web element
+     *
+     * @param xpathSelector The XPath selector of the web element
+     * @return The text of the web element
+     */
+    private String getTextOfWebElementIfExists(String xpathSelector) {
+        try {
+            return this.driver.findElement(By.xpath(xpathSelector)).getText();
+        } catch (TimeoutException | NoSuchElementException e) {
+            return "";
+        }
+    }
     // TODO(#23): Get usser current company (right side of the profile)
     // TODO(#24): Get user latest formation (right side of the profile)
     // TODO(#22): Get user interests (pages and groups)

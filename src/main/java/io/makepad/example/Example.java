@@ -2,6 +2,7 @@
 package io.makepad.example;
 
 import io.makepad.linked4j.Linked4J;
+import io.makepad.linked4j.models.Education;
 import io.makepad.linked4j.models.WorkExperience;
 import io.makepad.socialwalker.commons.models.Configuration;
 import io.makepad.socialwalker.commons.models.exceptions.CookieFileNotFoundException;
@@ -18,7 +19,8 @@ public class Example {
         } else {
             l.login(System.getenv("LINKEDIN_USERNAME"), System.getenv("LINKEDIN_PASSWORD"));
         }
-        l.setUserProfile("cindygallop");
+        l.setUserProfile("bülent-uraz-b42a80120");
+        // l.setUserProfile("cindygallop");
         // l.setUserProfile("nursu-gür-43037a14b");
         System.out.printf("User full name %s\n", l.userProfile.getFullName());
         System.out.printf("User info %s\n", l.userProfile.getInfo());
@@ -26,5 +28,7 @@ public class Example {
         System.out.printf("User current location %s\n", l.userProfile.getCurrentLocation());
         List<WorkExperience> workExperience = l.userProfile.getUserExperiences();
         System.out.printf("Number of experiences %s\n", workExperience.size());
+        List<Education> educations = l.userProfile.getEducation();
+        System.out.printf("Number of educations objects on the user profile %d", educations.size());
     }
 }
