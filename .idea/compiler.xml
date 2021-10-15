@@ -10,5 +10,8 @@
         <module name="linked4j" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name=".mvn" target="1.5" />
+    </bytecodeTargetLevel>
   </component>
 </project>
