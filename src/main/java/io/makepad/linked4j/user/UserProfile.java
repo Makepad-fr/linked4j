@@ -308,15 +308,18 @@ public class UserProfile {
             return "";
         }
     }
-    // TODO: Get user interests (pages and groups)
-    // TODO: Get user contact details
-    // TODO: Get user profile image
-    // TODO: Get user profile cover
-    // TODO: Get user's common relations
-    // TODO: Get user's relations
-    // TODO: Get user's skills and recommondations
-    // TODO: Get user's formation (education)
-    // TODO: Get uers's recommondations
-    // TODO: Get user's certifications
-    // TODO: Get user's non profit experience
+
+    // TODO(#23): Get usser current company (right side of the profile)
+    // TODO(#24): Get user latest formation (right side of the profile)
+    // TODO(#22): Get user interests (pages and groups)
+    // TODO(#21): Get user contact details
+    // TODO(#20): Get user profile image
+    // TODO(#19): Get user profile cover
+    // TODO(#18): Get user's common relations
+    // TODO(#11): Get user's relations
+    // TODO(#25): Get user's skills and recommondations
+    // TODO(#26): Get user's formation (education)
+    // TODO(#27): Get uers's recommondations
+    // TODO(#28): Get user's certifications
+    // TODO(#29): Get user's non profit experience
 }
