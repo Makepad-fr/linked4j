@@ -1,8 +1,12 @@
 /* (C)2021 */
 package io.makepad.linked4j.user;
 
+import io.makepad.linked4j.models.Company;
+import io.makepad.linked4j.models.Role;
+import io.makepad.linked4j.models.WorkExperience;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -101,7 +105,13 @@ public class UserProfile {
         }
     }
 
-    public String getUserExperiences() {
+    /**
+     * Function returns the work experiences of the user profile
+     *
+     * @return List of work experiences on the user profile
+     */
+    public List<WorkExperience> getUserExperiences() {
+        List<WorkExperience> experiences = new ArrayList<WorkExperience>();
         this.goProfilePage();
         // Check if more experience button is available
         // If it's available, click on it to show all experiences
@@ -126,7 +136,6 @@ public class UserProfile {
                     roleContainerSelector = By.xpath(roleContainerPath);
             String companyInternalURL =
                     this.driver.findElement(experienceGroupSelector).getAttribute("href");
-            logger.info(String.format("Internal company URL %s", companyInternalURL));
 
             try {
                 this.wait.until(ExpectedConditions.presenceOfElementLocated(roleContainerSelector));
@@ -136,25 +145,36 @@ public class UserProfile {
                                 experienceGroupPath);
                 expandAll(By.xpath(expandRolesPath));
                 List<WebElement> roleElements = this.driver.findElements(roleContainerSelector);
-                logger.debug(String.format("Number of roles %d", roleElements.size()));
+                experiences.add(
+                        this.getExperienceWithMultipleRoles(
+                                experienceGroupLinkPath,
+                                roleElements,
+                                roleContainerPath,
+                                companyInternalURL));
 
-                logger.debug(String.format("Expand all button path %s", expandRolesPath));
-                this.getExperienceWithMultipleRoles(
-                        experienceGroupLinkPath, roleElements, roleContainerPath);
             } catch (TimeoutException | NoSuchElementException e) {
-                logger.debug("No roles for this experience");
-                this.getExperienceWithSingleRole(experienceGroupPath, experienceGroupLinkPath);
+                experiences.add(
+                        this.getExperienceWithSingleRole(
+                                experienceGroupPath, experienceGroupLinkPath, companyInternalURL));
             }
-            // TODO: Check if we can get attachments if any
         }
-        // create Experience item for all experiences
-        return null;
+        return experiences;
     }
 
-    // TODO: Change return type with correct class
-    // TODO: Complete JavaDoc comments
-    private void getExperienceWithMultipleRoles(
-            String experienceGroupPath, List<WebElement> roleElements, String roleContainerPath) {
+    /**
+     * Function return a WorkExperience with multiple position
+     *
+     * @param experienceGroupPath The XPath selector string for the experience group
+     * @param roleElements List of WebElements for each role
+     * @param roleContainerPath XPath selector for role container
+     * @param companyURL Company's LinkedIn url related to this experience
+     * @return The WorkExperience object with multiple roles
+     */
+    private WorkExperience getExperienceWithMultipleRoles(
+            String experienceGroupPath,
+            List<WebElement> roleElements,
+            String roleContainerPath,
+            String companyURL) {
         String experienceGroupTitleSelector =
                 String.format(
                         "%s//div[contains(@class,'pv-entity__company-summary-info')]/h3/span[2]",
@@ -167,14 +187,12 @@ public class UserProfile {
                         experienceGroupPath);
         WebElement experienceSubTitleElement =
                 this.driver.findElement(By.xpath(experienceGroupSubTitleSelector));
-        logger.debug(
-                String.format(
-                        "Total duration in this company %s", experienceSubTitleElement.getText()));
-        logger.info(
-                String.format(
-                        "Company name with multiple roles %s", experienceTitleElement.getText()));
-
+        WorkExperience experience =
+                new WorkExperience(
+                        new Company(experienceTitleElement.getText(), companyURL),
+                        experienceSubTitleElement.getText());
         for (int j = 0; j < roleElements.size(); j++) {
+            Role r;
             String rolePath = String.format("(%s)[%d]", roleContainerPath, j + 1);
             String
                     roleNamePath =
@@ -191,29 +209,44 @@ public class UserProfile {
                                     rolePath);
             WebElement roleNameElement = this.driver.findElement(By.xpath(roleNamePath));
             List<WebElement> roleInfoElement = this.driver.findElements(By.xpath(roleInfoPath));
-            logger.debug(String.format("Role title %s", roleNameElement.getText()));
-            logger.debug(String.format("Role time interval %s", roleInfoElement.get(0).getText()));
-            logger.debug(String.format("Role duration %s", roleInfoElement.get(1).getText()));
-            if (roleInfoElement.size() > 2)
-                logger.debug(String.format("Role location %s", roleInfoElement.get(2).getText()));
-            String roleDescription = this.getExperienceDescription(roleDescriptionPath);
-            logger.debug(String.format("Role description %s", roleDescription));
+            String roleLocation = "";
+            if (roleInfoElement.size() > 2) roleLocation = roleInfoElement.get(2).getText();
+            r =
+                    new Role(
+                            roleNameElement.getText(),
+                            roleInfoElement.get(1).getText(),
+                            roleInfoElement.get(0).getText(),
+                            roleLocation,
+                            this.getExperienceDescription(roleDescriptionPath));
+            experience.roles.add(r);
         }
+        return experience;
     }
 
-    // TODO: Change return type with correct class
-    // TODO: Complete JavaDoc comments
-    private void getExperienceWithSingleRole(
-            String experienceGroupPath, String experienceGroupLinkPath) {
-        logger.debug(String.format("Experience group link path %s", experienceGroupLinkPath));
-        logger.debug(String.format("Experience group path %s", experienceGroupPath));
+    /**
+     * Function return work experience with single role
+     *
+     * @param experienceGroupPath XPath selector for experience group
+     * @param experienceGroupLinkPath XPath selector for experience group link
+     * @param companyURL The LinkedIn URL of the company page
+     * @return WorkExperience with single role
+     */
+    private WorkExperience getExperienceWithSingleRole(
+            String experienceGroupPath, String experienceGroupLinkPath, String companyURL) {
         String experienceSummaryPath =
                 String.format(
                         "%s//div[contains(@class,'pv-entity__summary-info')]",
                         experienceGroupLinkPath);
         String roleNamePath = String.format("%s//h3", experienceSummaryPath),
                 companyNamePath = String.format("%s//p[2]", experienceSummaryPath),
-                timeIntervalPath = String.format("%s//h4[1]/span[2]", experienceSummaryPath),
+                timeIntervalPath =
+                        String.format(
+                                "%s//h4[contains(@class,'pv-entity__date-range')]/span[2]",
+                                experienceSummaryPath),
+                locationPath =
+                        String.format(
+                                "%s//h4[contains(@class,'pv-entity__location')]/span[2]",
+                                experienceSummaryPath),
                 durationPath = String.format("%s//h4[2]/span[2]", experienceSummaryPath),
                 descriptionPath =
                         String.format(
@@ -224,12 +257,25 @@ public class UserProfile {
                 companyNameElement = this.driver.findElement(By.xpath(companyNamePath)),
                 timeIntervalElement = this.driver.findElement(By.xpath(timeIntervalPath)),
                 durationElement = this.driver.findElement(By.xpath(durationPath));
-        logger.info(String.format("Role name %s", roleNameElement.getText()));
-        logger.info(String.format("Company name %s", companyNameElement.getText()));
-        logger.info(String.format("Time interval %s", timeIntervalElement.getText()));
-        logger.info(String.format("Duration %s", durationElement.getText()));
         String roleDescription = this.getExperienceDescription(descriptionPath);
-        logger.debug(String.format("Role description %s", roleDescription));
+        String location = "";
+        try {
+            location = this.driver.findElement(By.xpath(locationPath)).getText();
+        } catch (NoSuchElementException ignore) {
+
+        }
+        WorkExperience exp =
+                new WorkExperience(
+                        new Company(companyNameElement.getText(), companyURL),
+                        durationElement.getText());
+        exp.roles.add(
+                new Role(
+                        roleNameElement.getText(),
+                        durationElement.getText(),
+                        timeIntervalElement.getText(),
+                        location,
+                        roleDescription));
+        return exp;
     }
 
     /**
@@ -240,7 +286,6 @@ public class UserProfile {
      */
     private String getExperienceDescription(String descriptionPath) {
         try {
-            logger.debug(String.format("Role description path %s", descriptionPath));
             WebElement descriptionElement = this.driver.findElement(By.xpath(descriptionPath));
             String roleDescription = descriptionElement.getText();
             try {
