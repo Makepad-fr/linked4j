@@ -22,7 +22,7 @@ public class Example {
         // l.setUserProfile("nursu-gür-43037a14b");
         System.out.printf("User full name %s\n", l.userProfile.getFullName());
         System.out.printf("User info %s\n", l.userProfile.getInfo());
-        System.out.printf("User current job %s\n", l.userProfile.getCurrentJob());
+        System.out.printf("User current job %s\n", l.userProfile.getShortDescription());
         System.out.printf("User current location %s\n", l.userProfile.getCurrentLocation());
         List<WorkExperience> workExperience = l.userProfile.getUserExperiences();
         System.out.printf("Number of experiences %s\n", workExperience.size());

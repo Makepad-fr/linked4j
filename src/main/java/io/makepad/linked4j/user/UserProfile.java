@@ -89,10 +89,12 @@ public class UserProfile {
      *
      * @return The current job of the current user
      */
-    public String getCurrentJob() {
+    public String getShortDescription() {
         this.goProfilePage();
         return this.driver.findElement(UserProfileSelectors.currentJob).getText();
     }
+
+
 
     /** Function expands all experiences on the user profile */
     private void expandAll(By selector) {
