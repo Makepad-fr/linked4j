@@ -429,6 +429,23 @@ public class UserProfile {
         }
     }
 
+    /**
+     * Function checks if the user has the influencer badge
+     *
+     * @return True if the user has influencer badge or not
+     */
+    public boolean isInfluencer() {
+        this.goProfilePage();
+        try {
+            this.wait.until(
+                    ExpectedConditions.presenceOfElementLocated(
+                            UserProfileSelectors.influencerBadge));
+            return true;
+        } catch (TimeoutException | NoSuchElementException e) {
+            return false;
+        }
+    }
+
     // TODO(#28): Get user's certifications
     // TODO(#29): Get user's non profit experience
     // TODO(#22): Get user interests (pages and groups)
