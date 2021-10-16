@@ -13,5 +13,6 @@ abstract class UserProfileSelectors {
             contactInfoButton =
                     By.xpath("//div[contains(@class,'pv-text-details__left-panel')][2]/span[2]"),
             info = By.xpath("//section[contains(@class,'pv-about-section')]/div"),
-            infoTextToDelete = By.xpath("//section[contains(@class,'pv-about-section')]/div/span");
+            infoTextToDelete = By.xpath("//section[contains(@class,'pv-about-section')]/div/span"),
+            premiumBadge = By.xpath("//span[contains(@class,'pv-member-badge--for-top-card')]");
 }
