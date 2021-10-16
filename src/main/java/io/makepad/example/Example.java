@@ -33,5 +33,6 @@ public class Example {
         System.out.printf(
                 "Number of educations objects on the user profile %d\n", educations.size());
         System.out.printf("User has premium badge ? %b\n", l.userProfile.hasPremium());
+        System.out.printf("Is influencer ? %b", l.userProfile.isInfluencer());
     }
 }
