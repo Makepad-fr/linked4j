@@ -19,7 +19,8 @@ public class Example {
         } else {
             l.login(System.getenv("LINKEDIN_USERNAME"), System.getenv("LINKEDIN_PASSWORD"));
         }
-        l.setUserProfile("bülent-uraz-b42a80120");
+        l.setUserProfile("emrecubukcu");
+        // l.setUserProfile("bülent-uraz-b42a80120");
         // l.setUserProfile("cindygallop");
         // l.setUserProfile("nursu-gür-43037a14b");
         System.out.printf("User full name %s\n", l.userProfile.getFullName());
@@ -29,6 +30,9 @@ public class Example {
         List<WorkExperience> workExperience = l.userProfile.getUserExperiences();
         System.out.printf("Number of experiences %s\n", workExperience.size());
         List<Education> educations = l.userProfile.getEducation();
-        System.out.printf("Number of educations objects on the user profile %d", educations.size());
+        System.out.printf(
+                "Number of educations objects on the user profile %d\n", educations.size());
+        System.out.printf("User has premium badge ? %b\n", l.userProfile.hasPremium());
+        System.out.printf("Is influencer ? %b", l.userProfile.isInfluencer());
     }
 }

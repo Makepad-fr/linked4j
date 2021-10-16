@@ -412,17 +412,52 @@ public class UserProfile {
             return "";
         }
     }
-    // TODO(#23): Get usser current company (right side of the profile)
-    // TODO(#24): Get user latest formation (right side of the profile)
+
+    /**
+     * Function checks if the user has premium badge or not
+     *
+     * @return True if user has premium badge, false if not
+     */
+    public boolean hasPremium() {
+        this.goProfilePage();
+        try {
+            this.wait.until(
+                    ExpectedConditions.presenceOfElementLocated(UserProfileSelectors.premiumBadge));
+            return true;
+        } catch (TimeoutException | NoSuchElementException e) {
+            return false;
+        }
+    }
+
+    /**
+     * Function checks if the user has the influencer badge
+     *
+     * @return True if the user has influencer badge or not
+     */
+    public boolean isInfluencer() {
+        this.goProfilePage();
+        try {
+            this.wait.until(
+                    ExpectedConditions.presenceOfElementLocated(
+                            UserProfileSelectors.influencerBadge));
+            return true;
+        } catch (TimeoutException | NoSuchElementException e) {
+            return false;
+        }
+    }
+
+    // TODO(#28): Get user's certifications
+    // TODO(#29): Get user's non profit experience
     // TODO(#22): Get user interests (pages and groups)
     // TODO(#21): Get user contact details
+
     // TODO(#20): Get user profile image
     // TODO(#19): Get user profile cover
     // TODO(#18): Get user's common relations
     // TODO(#11): Get user's relations
     // TODO(#25): Get user's skills and recommondations
-    // TODO(#26): Get user's formation (education)
     // TODO(#27): Get uers's recommondations
-    // TODO(#28): Get user's certifications
-    // TODO(#29): Get user's non profit experience
+
+    // TODO(#23): Get user current company (right side of the profile)
+    // TODO(#24): Get user latest formation (right side of the profile)
 }
