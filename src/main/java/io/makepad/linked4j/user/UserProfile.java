@@ -1,11 +1,15 @@
 /* (C)2021 */
 package io.makepad.linked4j.user;
 
+import com.microsoft.playwright.ElementHandle;
+import com.microsoft.playwright.Page;
+import com.microsoft.playwright.TimeoutError;
 import io.makepad.linked4j.models.Company;
 import io.makepad.linked4j.models.Education;
 import io.makepad.linked4j.models.Role;
 import io.makepad.linked4j.models.School;
 import io.makepad.linked4j.models.WorkExperience;
+import io.makepad.linked4j.utils.PageHelpers;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
@@ -14,24 +18,17 @@ import java.util.ArrayList;
 import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.openqa.selenium.By;
-import org.openqa.selenium.NoSuchElementException;
-import org.openqa.selenium.TimeoutException;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
-import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.WebDriverWait;
 
 public class UserProfile {
-    private final WebDriver driver;
-    private final WebDriverWait wait;
+    private final Page page;
     private final String username;
     private static final Logger logger = LogManager.getLogger(UserProfile.class);
+    private final PageHelpers helpers;
 
-    public UserProfile(WebDriver driver, String username, WebDriverWait wait) {
-        this.driver = driver;
+    public UserProfile(Page page, String username, PageHelpers helpers) {
+        this.page = page;
         this.username = username;
-        this.wait = wait;
+        this.helpers = helpers;
     }
 
     /** Function navigates to the profile page of the user */
@@ -40,11 +37,11 @@ public class UserProfile {
                 String.format(
                         "https://www.linkedin.com/in/%s/",
                         URLEncoder.encode(this.username, StandardCharsets.UTF_8));
-        logger.info(String.format("Current URL %s\n", this.driver.getCurrentUrl()));
-        if (this.driver.getCurrentUrl().equals(url)) {
+        logger.info(String.format("Current URL %s\n", this.page.url()));
+        if (this.page.url().equals(url)) {
             return;
         }
-        this.driver.get(url);
+        this.page.navigate(url);
     }
 
     /**
@@ -54,7 +51,7 @@ public class UserProfile {
      */
     public String getFullName() {
         this.goProfilePage();
-        return this.driver.findElement(UserProfileSelectors.fullName).getText();
+        return this.page.textContent(UserProfileSelectors.fullName);
     }
 
     /**
@@ -65,15 +62,10 @@ public class UserProfile {
     public String getInfo() {
         this.goProfilePage();
         try {
-            return this.driver
-                    .findElement(UserProfileSelectors.info)
-                    .getText()
-                    .replaceAll(
-                            this.driver
-                                    .findElement(UserProfileSelectors.infoTextToDelete)
-                                    .getText(),
-                            "");
-        } catch (NoSuchElementException e) {
+            return this.page
+                    .textContent(UserProfileSelectors.info)
+                    .replaceAll(this.page.textContent(UserProfileSelectors.infoTextToDelete), "");
+        } catch (TimeoutError e) {
             return "";
         }
     }
@@ -85,7 +77,7 @@ public class UserProfile {
      */
     public String getCurrentLocation() {
         this.goProfilePage();
-        return this.driver.findElement(UserProfileSelectors.location).getText();
+        return this.page.textContent(UserProfileSelectors.location);
     }
 
     /**
@@ -95,17 +87,15 @@ public class UserProfile {
      */
     public String getShortDescription() {
         this.goProfilePage();
-        return this.driver.findElement(UserProfileSelectors.currentJob).getText();
+        return this.page.textContent(UserProfileSelectors.currentJob);
     }
 
     /** Function expands all experiences on the user profile */
-    private void expandAll(By selector) {
+    private void expandAll(String selector) {
         try {
-            WebElement moreExperiencesButton =
-                    this.wait.until(ExpectedConditions.visibilityOfElementLocated(selector));
-            moreExperiencesButton.click();
+            this.page.click(selector);
             expandAll(selector);
-        } catch (TimeoutException ignored) {
+        } catch (TimeoutError ignored) {
         }
     }
 
@@ -117,12 +107,13 @@ public class UserProfile {
     public List<WorkExperience> getUserExperiences() {
         List<WorkExperience> experiences = new ArrayList<WorkExperience>();
         this.goProfilePage();
+        this.helpers.scrollUntilElementAppears(UserExperienceSelectors.moreExperienceButton);
         // Check if more experience button is available
         // If it's available, click on it to show all experiences
         this.expandAll(UserExperienceSelectors.moreExperienceButton);
         // Once we have all experience groups
-        List<WebElement> experienceWE =
-                this.driver.findElements(UserExperienceSelectors.experienceGroup);
+        List<ElementHandle> experienceWE =
+                this.page.querySelectorAll(UserExperienceSelectors.experienceGroupPath);
         for (int i = 0; i < experienceWE.size(); i++) {
             String
                     roleContainerPath =
@@ -136,19 +127,14 @@ public class UserProfile {
                             String.format(
                                     "%s[%d]//a",
                                     UserExperienceSelectors.experienceGroupPath, i + 1);
-            By experienceGroupSelector = By.xpath(experienceGroupLinkPath),
-                    roleContainerSelector = By.xpath(roleContainerPath);
-            String companyInternalURL =
-                    this.driver.findElement(experienceGroupSelector).getAttribute("href");
-
+            String companyInternalURL = this.page.getAttribute(experienceGroupPath, "href");
             try {
-                this.wait.until(ExpectedConditions.presenceOfElementLocated(roleContainerSelector));
                 String expandRolesPath =
                         String.format(
                                 "%s//div[contains(@class,'pv-entity__paging')]//li-icon[@type='chevron-down-icon']/parent::button",
                                 experienceGroupPath);
-                expandAll(By.xpath(expandRolesPath));
-                List<WebElement> roleElements = this.driver.findElements(roleContainerSelector);
+                expandAll(expandRolesPath);
+                List<ElementHandle> roleElements = this.page.querySelectorAll(roleContainerPath);
                 experiences.add(
                         this.getExperienceWithMultipleRoles(
                                 experienceGroupLinkPath,
@@ -156,7 +142,7 @@ public class UserProfile {
                                 roleContainerPath,
                                 companyInternalURL));
 
-            } catch (TimeoutException | NoSuchElementException e) {
+            } catch (TimeoutError e) {
                 experiences.add(
                         this.getExperienceWithSingleRole(
                                 experienceGroupPath, experienceGroupLinkPath, companyInternalURL));
@@ -176,25 +162,23 @@ public class UserProfile {
      */
     private WorkExperience getExperienceWithMultipleRoles(
             String experienceGroupPath,
-            List<WebElement> roleElements,
+            List<ElementHandle> roleElements,
             String roleContainerPath,
             String companyURL) {
         String experienceGroupTitleSelector =
                 String.format(
                         "%s//div[contains(@class,'pv-entity__company-summary-info')]/h3/span[2]",
                         experienceGroupPath);
-        WebElement experienceTitleElement =
-                this.driver.findElement(By.xpath(experienceGroupTitleSelector));
         String experienceGroupSubTitleSelector =
                 String.format(
                         "%s//div[contains(@class,'pv-entity__company-summary-info')]/h4/span[2]",
                         experienceGroupPath);
-        WebElement experienceSubTitleElement =
-                this.driver.findElement(By.xpath(experienceGroupSubTitleSelector));
+
         WorkExperience experience =
                 new WorkExperience(
-                        new Company(experienceTitleElement.getText(), companyURL),
-                        experienceSubTitleElement.getText());
+                        new Company(
+                                this.page.textContent(experienceGroupTitleSelector), companyURL),
+                        this.page.textContent(experienceGroupSubTitleSelector));
         for (int j = 0; j < roleElements.size(); j++) {
             Role r;
             String rolePath = String.format("(%s)[%d]", roleContainerPath, j + 1);
@@ -211,15 +195,15 @@ public class UserProfile {
                             String.format(
                                     "%s//div[contains(@class,'pv-entity__extra-details')]/div[contains(@class,'inline-show-more-text')]",
                                     rolePath);
-            WebElement roleNameElement = this.driver.findElement(By.xpath(roleNamePath));
-            List<WebElement> roleInfoElement = this.driver.findElements(By.xpath(roleInfoPath));
+            ElementHandle roleNameElement = this.page.querySelector(roleNamePath);
+            List<ElementHandle> roleInfoElement = this.page.querySelectorAll(roleInfoPath);
             String roleLocation = "";
-            if (roleInfoElement.size() > 2) roleLocation = roleInfoElement.get(2).getText();
+            if (roleInfoElement.size() > 2) roleLocation = roleInfoElement.get(2).textContent();
             r =
                     new Role(
-                            roleNameElement.getText(),
-                            roleInfoElement.get(1).getText(),
-                            roleInfoElement.get(0).getText(),
+                            roleNameElement.textContent(),
+                            roleInfoElement.get(1).textContent(),
+                            roleInfoElement.get(0).textContent(),
                             roleLocation,
                             this.getExperienceDescription(roleDescriptionPath));
             experience.roles.add(r);
@@ -257,23 +241,21 @@ public class UserProfile {
                                 "%s//div[contains(@class,'pv-entity__extra-details')]/div[contains(@class,"
                                     + " 'inline-show-more-text')]",
                                 experienceGroupPath);
-        WebElement roleNameElement = this.driver.findElement(By.xpath(roleNamePath)),
-                companyNameElement = this.driver.findElement(By.xpath(companyNamePath)),
-                timeIntervalElement = this.driver.findElement(By.xpath(timeIntervalPath)),
-                durationElement = this.driver.findElement(By.xpath(durationPath));
+        ElementHandle roleNameElement = this.page.querySelector(roleNamePath),
+                companyNameElement = this.page.querySelector(companyNamePath),
+                timeIntervalElement = this.page.querySelector(timeIntervalPath),
+                durationElement = this.page.querySelector(durationPath);
         String roleDescription = this.getExperienceDescription(descriptionPath);
-        String location = "";
-        location = getTextOfWebElementIfExists(locationPath);
-
+        String location = this.helpers.textContent(locationPath);
         WorkExperience exp =
                 new WorkExperience(
-                        new Company(companyNameElement.getText(), companyURL),
-                        durationElement.getText());
+                        new Company(companyNameElement.textContent(), companyURL),
+                        durationElement.textContent());
         exp.roles.add(
                 new Role(
-                        roleNameElement.getText(),
-                        durationElement.getText(),
-                        timeIntervalElement.getText(),
+                        roleNameElement.textContent(),
+                        durationElement.textContent(),
+                        timeIntervalElement.textContent(),
                         location,
                         roleDescription));
         return exp;
@@ -287,23 +269,20 @@ public class UserProfile {
      */
     private String getExperienceDescription(String descriptionPath) {
         try {
-            WebElement descriptionElement = this.driver.findElement(By.xpath(descriptionPath));
-            String roleDescription = descriptionElement.getText();
+            String roleDescription = this.page.textContent(descriptionPath);
             try {
                 String showMoreButtonPath =
                         String.format(
                                 "%s/span[contains(@class,'inline-show-more-text__link-container-collapsed')]",
                                 descriptionPath);
-                WebElement showMoreButtonText =
-                        this.driver.findElement(By.xpath(showMoreButtonPath));
-                String textToIgnore = showMoreButtonText.getText();
+                String textToIgnore = this.page.textContent(showMoreButtonPath);
                 roleDescription =
                         roleDescription.replaceFirst(
                                 "(?s)" + textToIgnore + "(?!.*?" + textToIgnore + ")", "");
-            } catch (TimeoutException | NoSuchElementException ignore) {
+            } catch (TimeoutError ignore) {
             }
             return roleDescription;
-        } catch (NoSuchElementException ignore) {
+        } catch (TimeoutError ignore) {
             return "";
         }
     }
@@ -317,13 +296,20 @@ public class UserProfile {
         this.goProfilePage();
         List<Education> educations = new ArrayList<>();
         try {
-            this.wait.until(
-                    ExpectedConditions.presenceOfElementLocated(
-                            By.xpath(UserEducationSelectors.educationSectionPath)));
-            this.expandAll(By.xpath(UserEducationSelectors.seeMoreButtonPath));
-            List<WebElement> educationListItems =
-                    this.driver.findElements(
-                            By.xpath(UserEducationSelectors.educationListItemPath));
+            logger.debug("Scrolling the page until the educations container appears");
+            this.helpers.scrollUntilElementAppears(UserEducationSelectors.educationSectionPath);
+            logger.info("Education section appeared");
+            logger.debug("Will expand all education stuff");
+            this.expandAll(UserEducationSelectors.seeMoreButtonPath);
+            logger.info("All education elements are expanded");
+            logger.debug(
+                    String.format(
+                            "Education list item selector %s",
+                            UserEducationSelectors.educationListItemPath));
+            List<ElementHandle> educationListItems =
+                    this.page.querySelectorAll(UserEducationSelectors.educationListItemPath);
+            logger.debug(String.format("Number of education items %d", educationListItems.size()));
+
             for (int i = 0; i < educationListItems.size(); i++) {
                 String
                         educationListItemPath =
@@ -362,22 +348,30 @@ public class UserProfile {
                                         educationListItemPath,
                                         UserEducationSelectors.educationActivitiesAndSocieties);
 
-                WebElement schoolURLElement = this.driver.findElement(By.xpath(schoolURLPath)),
-                        schoolNameElement = this.driver.findElement(By.xpath(schoolNamePath)),
-                        dateElement = this.driver.findElement(By.xpath(datePath));
+                ElementHandle schoolURLElement = this.page.querySelector(schoolURLPath),
+                        schoolNameElement = this.page.querySelector(schoolNamePath),
+                        dateElement = this.page.querySelector(datePath);
                 School school =
                         new School(
-                                schoolNameElement.getText(), schoolURLElement.getAttribute("href"));
+                                schoolNameElement.textContent(),
+                                schoolURLElement.getAttribute("href"));
                 // logger.debug(String.format("Field name %s", fieldNameElement.getText()));
-                String degree = getTextOfWebElementIfExists(degreeNamePath),
-                        field = getTextOfWebElementIfExists(fieldNamePath),
-                        description = getTextOfWebElementIfExists(descriptionPath),
+                String degree = this.helpers.textContent(degreeNamePath),
+                        field = this.helpers.textContent(fieldNamePath),
+                        description = this.helpers.textContent(descriptionPath),
                         activitiesAndSocieties =
-                                getTextOfWebElementIfExists(activitiesAndSocietiesPath);
+                                this.helpers.textContent(activitiesAndSocietiesPath);
 
                 try {
-                    String dateText = dateElement.getText();
-                    String[] parsedDate = dateText.split("[-–]");
+                    String dateText = dateElement.textContent();
+                    logger.debug(String.format("Date text %s", dateText));
+                    String[] parsedDate = dateText.split("[\\-–]");
+                    logger.debug(
+                            String.format("Parsed date contains %d elements", parsedDate.length));
+                    logger.debug(
+                            String.format(
+                                    "Parsed date elements %s, %s",
+                                    parsedDate[0].trim(), parsedDate[1].trim()));
                     SimpleDateFormat df = new SimpleDateFormat("yyyy");
                     educations.add(
                             new Education(
@@ -386,31 +380,19 @@ public class UserProfile {
                                     degree,
                                     description,
                                     activitiesAndSocieties,
-                                    df.parse(parsedDate[0]),
-                                    df.parse(parsedDate[1])));
+                                    df.parse(parsedDate[0].trim()),
+                                    df.parse(parsedDate[1].trim())));
                 } catch (IndexOutOfBoundsException | ParseException e) {
-                    System.err.printf("Can not parse date %s", dateElement.getText());
+                    logger.error("Something went wrong while parsing date");
+                    logger.error(e.getMessage());
                     // TODO: Do something when we cannot parse the date element
                 }
             }
-        } catch (TimeoutException | NoSuchElementException e) {
+        } catch (TimeoutError e) {
+            logger.warn(e.getMessage());
             logger.warn("This user has no education on the profile");
         }
         return educations;
-    }
-
-    /**
-     * Function returns the text content of the web element
-     *
-     * @param xpathSelector The XPath selector of the web element
-     * @return The text of the web element
-     */
-    private String getTextOfWebElementIfExists(String xpathSelector) {
-        try {
-            return this.driver.findElement(By.xpath(xpathSelector)).getText();
-        } catch (TimeoutException | NoSuchElementException e) {
-            return "";
-        }
     }
 
     /**
@@ -421,10 +403,9 @@ public class UserProfile {
     public boolean hasPremium() {
         this.goProfilePage();
         try {
-            this.wait.until(
-                    ExpectedConditions.presenceOfElementLocated(UserProfileSelectors.premiumBadge));
+            this.page.waitForSelector(UserProfileSelectors.premiumBadge);
             return true;
-        } catch (TimeoutException | NoSuchElementException e) {
+        } catch (TimeoutError e) {
             return false;
         }
     }
@@ -437,11 +418,9 @@ public class UserProfile {
     public boolean isInfluencer() {
         this.goProfilePage();
         try {
-            this.wait.until(
-                    ExpectedConditions.presenceOfElementLocated(
-                            UserProfileSelectors.influencerBadge));
+            this.page.waitForSelector(UserProfileSelectors.influencerBadge);
             return true;
-        } catch (TimeoutException | NoSuchElementException e) {
+        } catch (TimeoutError e) {
             return false;
         }
     }
