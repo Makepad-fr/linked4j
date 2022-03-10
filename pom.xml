@@ -63,8 +63,14 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>15</maven.compiler.source>
         <maven.compiler.target>15</maven.compiler.target>
-        <socialwalker.commons.version>0.0.4</socialwalker.commons.version>
+        <playwright.version>1.16.0</playwright.version>
         <spotless.version>2.17.0</spotless.version>
+        <log4j.api.version>
+            2.14.1
+        </log4j.api.version>
+        <log4j.core.version>
+            2.14.1
+        </log4j.core.version>
     </properties>
     <profiles>
         <profile>
@@ -83,9 +89,24 @@
 
     <dependencies>
         <dependency>
-            <groupId>io.makepad.socialwalker</groupId>
-            <artifactId>commons</artifactId>
-            <version>${socialwalker.commons.version}</version>
+            <groupId>com.microsoft.playwright</groupId>
+            <artifactId>playwright</artifactId>
+            <version>${playwright.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-api</artifactId>
+            <version>${log4j.api.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <version>${log4j.core.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.diffplug.spotless</groupId>
+            <artifactId>spotless-maven-plugin</artifactId>
+            <version>${spotless.version}</version>
         </dependency>
     </dependencies>
 
